@@ -1,0 +1,17 @@
+## Build output
+**/bin/
+**/obj/
+
+## IDE
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Nested repos
+.git/
+
+## OS
+.DS_Store
+Thumbs.db

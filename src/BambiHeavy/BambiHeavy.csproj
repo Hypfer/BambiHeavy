@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+        <RootNamespace>BambiHeavy</RootNamespace>
+        <Version>2026.05.0</Version>
+        <AssemblyVersion>2026.5.0.0</AssemblyVersion>
+        <FileVersion>2026.5.0.0</FileVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MessageBox.Avalonia" Version="12.0.0"/>
+        <PackageReference Include="MQTTnet" Version="5.0.1.1416"/>
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0"/>
+        <PackageReference Include="SharpDX.DXGI" Version="4.2.0"/>
+        <PackageReference Include="Avalonia" Version="12.0.1"/>
+        <PackageReference Include="Avalonia.Desktop" Version="12.0.1"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.1"/>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2"/>
+    </ItemGroup>
+
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+        <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        <PackageReference Include="System.Drawing.Common" Version="8.0.10"/>
+        <Compile Remove="Capture/LinuxScreenCapture.cs"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+        <Compile Remove="Capture/WindowsScreenCapture.cs"/>
+    </ItemGroup>
+
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$(Configuration)' == 'Release'">
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <PublishTrimmed>false</PublishTrimmed>
+        <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <DebugType>none</DebugType>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    </PropertyGroup>
+
+    <Target Name="StripThirdPartyPDBs" AfterTargets="Publish">
+        <ItemGroup>
+            <PdbFiles Include="$(PublishDir)*.pdb"/>
+        </ItemGroup>
+        <Delete Files="@(PdbFiles)"/>
+    </Target>
+
+</Project>

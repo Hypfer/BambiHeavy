@@ -1,0 +1,707 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:BambiHeavy.ViewModels"
+        xmlns:models="using:BambiHeavy.Models"
+        xmlns:converters="using:BambiHeavy.Converters"
+        x:Class="BambiHeavy.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="BambiHeavy — Settings"
+        MinWidth="650"
+        MinHeight="420"
+        Width="900"
+        Height="580">
+
+    <Window.Resources>
+        <converters:DiscoverButtonTextConverter x:Key="DiscoverBtn" />
+        <converters:BoolToIsVisibleConverter x:Key="BoolToIsVisible" />
+        <converters:RgbToBrushConverter x:Key="RgbToBrush" />
+        <converters:BoolToPlayStopTextConverter x:Key="BoolToPlayStop" />
+        <converters:MqttStatusToColorConverter x:Key="MqttStatusToColor" />
+        <converters:MqttStatusTextConverter x:Key="MqttStatusText" />
+        <converters:BoolToEyeIconConverter x:Key="BoolToEyeIcon" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibility" />
+        <converters:StyleToBorderBrushConverter x:Key="StyleToBorderBrush" />
+        <converters:StyleToBackgroundConverter x:Key="StyleToBackground" />
+        <converters:InvertedBoolConverter x:Key="InvertedBool" />
+        <converters:IsActiveStyleConverter x:Key="IsActiveStyle" />
+        <converters:StyleDescriptionConverter x:Key="StyleDescription" />
+    </Window.Resources>
+
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Bottom"
+                   Margin="12,8,12,12">
+            <!-- Left side: play/stop + stats -->
+            <StackPanel DockPanel.Dock="Left"
+                        Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Center">
+                <Button Content="{Binding IsRunning, Converter={StaticResource BoolToPlayStop}}"
+                        Command="{Binding ToggleBambiCommand}"
+                        Width="80"
+                        HorizontalContentAlignment="Center" />
+                <TextBlock VerticalAlignment="Center"
+                           FontSize="12"
+                           FontFamily="Consolas"
+                           Foreground="Gray"
+                           Text="{Binding StatsText}" />
+            </StackPanel>
+
+            <!-- Right side: discard + apply + version -->
+            <StackPanel Orientation="Horizontal" Spacing="8"
+                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,16,0"
+                           FontSize="12"
+                           Foreground="Gray" />
+                <Button Content="Discard"
+                        Command="{Binding DiscardCommand}"
+                        Width="80"
+                        HorizontalContentAlignment="Center"
+                        IsEnabled="{Binding HasChanges}" />
+                <Button Content="Apply"
+                        Command="{Binding SaveCommand}"
+                        Width="80"
+                        HorizontalContentAlignment="Center"
+                        IsEnabled="{Binding HasChanges}"
+                        IsDefault="True" />
+            </StackPanel>
+        </DockPanel>
+
+        <TabControl>
+
+            <!-- TAB 1: CONNECTION -->
+            <TabItem Header="Connection">
+                <ScrollViewer>
+                    <StackPanel Margin="16" Spacing="16">
+
+                        <!-- Broker Card -->
+                        <Border Padding="12" BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="4">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" FontSize="13">MQTT Broker</TextBlock>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Host:" Width="72" VerticalAlignment="Center" />
+                                    <TextBox Text="{Binding MqttBrokerUrl}"
+                                             PlaceholderText="e.g. 192.168.1.100"
+                                             HorizontalAlignment="Stretch"
+                                             MinWidth="200" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Port:" Width="72" VerticalAlignment="Center" />
+                                    <TextBox Text="{Binding MqttBrokerPort}"
+                                             PlaceholderText="1883"
+                                             HorizontalAlignment="Stretch" />
+                                    <CheckBox Content="Use TLS/SSL"
+                                              IsChecked="{Binding MqttUseTls}"
+                                              Margin="12,0,0,0"
+                                              VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Client ID:" Width="72" VerticalAlignment="Center" />
+                                    <TextBox Text="{Binding MqttClientId}"
+                                             PlaceholderText="leave empty for auto-generated"
+                                             HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Authentication Card -->
+                        <Border Padding="12" BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="4">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" FontSize="13">Authentication</TextBlock>
+
+                                <CheckBox Content="Use authentication"
+                                          IsChecked="{Binding UseAuthentication}" />
+
+                                <StackPanel Spacing="8"
+                                            Margin="24,0,0,0"
+                                            IsVisible="{Binding UseAuthentication, Converter={StaticResource BoolToIsVisible}}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="Username:" Width="72" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding MqttUsername}"
+                                                 PlaceholderText="MQTT username"
+                                                 HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="Password:" Width="72" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding MqttPassword}"
+                                                 PlaceholderText="MQTT password"
+                                                 HorizontalAlignment="Stretch" />
+                                        <Button
+                                            Content="{Binding ShowPassword, Converter={StaticResource BoolToEyeIcon}}"
+                                            Width="56"
+                                            Command="{Binding ToggleShowPasswordCommand}"
+                                            HorizontalContentAlignment="Center" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Connection Test -->
+                        <Border Padding="12" BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="4">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" FontSize="13">Connection Status</TextBlock>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Ellipse Width="10" Height="10"
+                                             Fill="{Binding MqttConnectionStatus, Converter={StaticResource MqttStatusToColor}}"
+                                             VerticalAlignment="Center" />
+                                    <TextBlock
+                                        Text="{Binding MqttConnectionStatus, Converter={StaticResource MqttStatusText}}"
+                                        VerticalAlignment="Center" FontSize="13" />
+                                    <TextBlock Text="{Binding MqttConnectionError}"
+                                               VerticalAlignment="Center" FontSize="12" Foreground="Red"
+                                               IsVisible="{Binding MqttConnectionError, Converter={StaticResource StringToVisibility}}" />
+                                </StackPanel>
+
+                                <Button Content="Test Connection"
+                                        Command="{Binding TestConnectionCommand}"
+                                        IsEnabled="{Binding IsTestingConnection, Converter={StaticResource InvertedBool}}"
+                                        Width="120"
+                                        HorizontalContentAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 2: LIGHTS -->
+            <TabItem Header="Lights">
+                <DockPanel Margin="12">
+                    <ScrollViewer>
+                        <StackPanel Spacing="12">
+
+                            <!-- Global Settings -->
+                            <TextBlock FontWeight="SemiBold" FontSize="13">Global Settings</TextBlock>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" FontSize="11" Width="36"
+                                           TextAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <Binding Path="GlobalBrightnessLimit" StringFormat="{}{0:P0}" />
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock DockPanel.Dock="Left" Text="Overall Brightness:" FontSize="12"
+                                           VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <Slider Minimum="0" Maximum="1" Value="{Binding GlobalBrightnessLimit}"
+                                        VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <!-- Assignments -->
+                            <TextBlock FontWeight="SemiBold" FontSize="13">Assignments</TextBlock>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Zone headers (row 0) -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Left" FontWeight="SemiBold"
+                                           Margin="4,2,4,6" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Right" FontWeight="SemiBold"
+                                           Margin="4,2,4,6" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Top" FontWeight="SemiBold"
+                                           Margin="4,2,4,6" />
+                                <TextBlock Grid.Row="0" Grid.Column="3" Text="Bottom" FontWeight="SemiBold"
+                                           Margin="4,2,4,6" />
+
+                                <!-- Zone light lists (row 1) -->
+                                <ItemsControl Grid.Row="1" Grid.Column="0" ItemsSource="{Binding LeftLights}"
+                                              Margin="0,0,3,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:LightMapping">
+                                            <Border Margin="0,0,0,4" Padding="6"
+                                                    BorderThickness="1" BorderBrush="DarkGray">
+                                                <StackPanel Spacing="4">
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="×"
+                                                                Width="22" Height="22"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Padding="0" Margin="4,0,0,0"
+                                                                Command="{Binding $parent[Window].DataContext.RemoveFromZoneCommand}"
+                                                                CommandParameter="{Binding}" />
+                                                        <Ellipse Width="6" Height="6" Fill="Red"
+                                                                 IsVisible="{Binding IsStale, Converter={StaticResource BoolToIsVisible}}"
+                                                                 Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding FriendlyName}" FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                    </DockPanel>
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Right" FontSize="11" Width="34"
+                                                                   TextAlignment="Right" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <Binding Path="Brightness" StringFormat="{}{0:P0}" />
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                        <Slider Minimum="0" Maximum="1"
+                                                                Value="{Binding Brightness, Mode=TwoWay}" />
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding RightLights}"
+                                              Margin="3,0,3,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:LightMapping">
+                                            <Border Margin="0,0,0,4" Padding="6"
+                                                    BorderThickness="1" BorderBrush="DarkGray">
+                                                <StackPanel Spacing="4">
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="×"
+                                                                Width="22" Height="22"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Padding="0" Margin="4,0,0,0"
+                                                                Command="{Binding $parent[Window].DataContext.RemoveFromZoneCommand}"
+                                                                CommandParameter="{Binding}" />
+                                                        <Ellipse Width="6" Height="6" Fill="Red"
+                                                                 IsVisible="{Binding IsStale, Converter={StaticResource BoolToIsVisible}}"
+                                                                 Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding FriendlyName}" FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                    </DockPanel>
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Right" FontSize="11" Width="34"
+                                                                   TextAlignment="Right" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <Binding Path="Brightness" StringFormat="{}{0:P0}" />
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                        <Slider Minimum="0" Maximum="1"
+                                                                Value="{Binding Brightness, Mode=TwoWay}" />
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <ItemsControl Grid.Row="1" Grid.Column="2" ItemsSource="{Binding TopLights}"
+                                              Margin="3,0,3,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:LightMapping">
+                                            <Border Margin="0,0,0,4" Padding="6"
+                                                    BorderThickness="1" BorderBrush="DarkGray">
+                                                <StackPanel Spacing="4">
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="×"
+                                                                Width="22" Height="22"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Padding="0" Margin="4,0,0,0"
+                                                                Command="{Binding $parent[Window].DataContext.RemoveFromZoneCommand}"
+                                                                CommandParameter="{Binding}" />
+                                                        <Ellipse Width="6" Height="6" Fill="Red"
+                                                                 IsVisible="{Binding IsStale, Converter={StaticResource BoolToIsVisible}}"
+                                                                 Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding FriendlyName}" FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                    </DockPanel>
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Right" FontSize="11" Width="34"
+                                                                   TextAlignment="Right" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <Binding Path="Brightness" StringFormat="{}{0:P0}" />
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                        <Slider Minimum="0" Maximum="1"
+                                                                Value="{Binding Brightness, Mode=TwoWay}" />
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <ItemsControl Grid.Row="1" Grid.Column="3" ItemsSource="{Binding BottomLights}"
+                                              Margin="3,0,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:LightMapping">
+                                            <Border Margin="0,0,0,4" Padding="6"
+                                                    BorderThickness="1" BorderBrush="DarkGray">
+                                                <StackPanel Spacing="4">
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="×"
+                                                                Width="22" Height="22"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Padding="0" Margin="4,0,0,0"
+                                                                Command="{Binding $parent[Window].DataContext.RemoveFromZoneCommand}"
+                                                                CommandParameter="{Binding}" />
+                                                        <Ellipse Width="6" Height="6" Fill="Red"
+                                                                 IsVisible="{Binding IsStale, Converter={StaticResource BoolToIsVisible}}"
+                                                                 Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding FriendlyName}" FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                    </DockPanel>
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Right" FontSize="11" Width="34"
+                                                                   TextAlignment="Right" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <Binding Path="Brightness" StringFormat="{}{0:P0}" />
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                        <Slider Minimum="0" Maximum="1"
+                                                                Value="{Binding Brightness, Mode=TwoWay}" />
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+
+                            <Separator />
+
+                            <!-- Discovery + filter -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="{Binding IsDiscovering, Converter={StaticResource DiscoverBtn}}"
+                                        Command="{Binding DiscoverLightsCommand}"
+                                        IsEnabled="{Binding IsDiscovering, Converter={StaticResource InvertedBool}}" />
+                                <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="Gray"
+                                           Text="{Binding DiscoveryStatus}" />
+                            </StackPanel>
+
+                            <!-- Unassigned pool -->
+                            <TextBox Text="{Binding FilterText}"
+                                     PlaceholderText="Filter lights..."
+                                     IsEnabled="{Binding HasUnassignedLights}"
+                                     Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding FilteredUnassignedLights}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="200" Padding="8" Margin="0,0,8,8"
+                                                BorderThickness="1" BorderBrush="DarkGray">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding FriendlyName}" FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding ModelId}" FontSize="11" Foreground="Gray"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <DockPanel>
+                                                    <TextBlock DockPanel.Dock="Left" Text="Assign:" FontSize="11"
+                                                               VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                    <ComboBox HorizontalAlignment="Stretch"
+                                                              SelectionChanged="OnZoneSelected">
+                                                        <ComboBoxItem Content="left" />
+                                                        <ComboBoxItem Content="right" />
+                                                        <ComboBoxItem Content="top" />
+                                                        <ComboBoxItem Content="bottom" />
+                                                    </ComboBox>
+                                                </DockPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+
+            <!-- TAB 3: APPEARANCE -->
+            <TabItem Header="Appearance">
+                <StackPanel Margin="16" Spacing="16">
+
+                    <StackPanel Spacing="10">
+                        <TextBlock FontWeight="SemiBold" FontSize="13">Style Preset</TextBlock>
+
+                        <ItemsControl ItemsSource="{Binding Styles}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="8" CornerRadius="4" Transitions="{}"
+                                            BorderThickness="1"
+                                            BorderBrush="{Binding Converter={StaticResource IsActiveStyle}, ConverterParameter={Binding $parent[Window].DataContext.ActiveStyle}, Converter={StaticResource StyleToBorderBrush}}"
+                                            Background="{Binding Converter={StaticResource IsActiveStyle}, ConverterParameter={Binding $parent[Window].DataContext.ActiveStyle}, Converter={StaticResource StyleToBackground}}">
+                                        <Button Padding="8" Background="Transparent" BorderThickness="0"
+                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                Transitions="{}"
+                                                Command="{Binding $parent[Window].DataContext.SelectStyleCommand}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="SemiBold" FontSize="13"
+                                                           Text="{Binding ToString}" />
+                                                <TextBlock FontSize="12" Foreground="Gray"
+                                                           Text="{Binding Converter={StaticResource StyleDescription}}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Border Padding="12" BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="4">
+                        <StackPanel Spacing="10">
+                            <TextBlock FontWeight="SemiBold" FontSize="13">Network Send Rate</TextBlock>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBox Text="{Binding NetworkFps}"
+                                         PlaceholderText="1-60"
+                                         Width="80" />
+                                <TextBlock Text="FPS" VerticalAlignment="Center" Foreground="Gray" />
+                            </StackPanel>
+                            <TextBlock FontSize="12" Foreground="Gray">Controls how often at max color data is sent to lights. Only changed frames are sent, leading to an effective lower rate.</TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </TabItem>
+
+            <!-- TAB 4: PIPELINE -->
+            <TabItem Header="Pipeline">
+                <ScrollViewer>
+                    <StackPanel Margin="16" Spacing="16">
+
+                        <!-- Processing Stages -->
+                        <Border Padding="12" BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="4">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" FontSize="13">Processing Stages</TextBlock>
+
+                                <CheckBox Content="Color Gain"
+                                          IsChecked="{Binding GainEnabled}">
+                                    <ToolTip.Tip>
+                                        <TextBlock Text="Adjusts contrast with luminance-adaptive chroma limiting" />
+                                    </ToolTip.Tip>
+                                </CheckBox>
+
+                                <CheckBox Content="Compress"
+                                          IsChecked="{Binding CompressEnabled}">
+                                    <ToolTip.Tip>
+                                        <TextBlock Text="Applies gamma ~2.0 curve for perceptual brightness" />
+                                    </ToolTip.Tip>
+                                </CheckBox>
+
+                                <CheckBox Content="Saturation Boost"
+                                          IsChecked="{Binding SaturationEnabled}">
+                                    <ToolTip.Tip>
+                                        <TextBlock Text="Increases color intensity" />
+                                    </ToolTip.Tip>
+                                </CheckBox>
+
+                                <CheckBox Content="Noise Gate"
+                                          IsChecked="{Binding NoiseGateEnabled}">
+                                    <ToolTip.Tip>
+                                        <TextBlock Text="Suppresses color noise in dark scenes" />
+                                    </ToolTip.Tip>
+                                </CheckBox>
+
+                                <CheckBox Content="Temporal Integration"
+                                          IsChecked="{Binding IntegrationEnabled}">
+                                    <ToolTip.Tip>
+                                        <TextBlock
+                                            Text="Smooths frame-to-frame color changes. Disabling may cause flicker but reduces latency." />
+                                    </ToolTip.Tip>
+                                </CheckBox>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Adaptive Transient Bypass -->
+                        <Border Padding="12" BorderThickness="1" BorderBrush="#E0E0E0" CornerRadius="4">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" FontSize="13">Adaptive Transient Bypass</TextBlock>
+
+                                <CheckBox Content="Enable transient bypass"
+                                          IsChecked="{Binding TransientBypassEnabled}"
+                                          IsEnabled="{Binding IntegrationEnabled}">
+                                    <ToolTip.Tip>
+                                        <TextBlock
+                                            Text="Temporarily bypasses smoothing during rapid visual changes (scene cuts, flashing content). Requires Temporal Integration enabled." />
+                                    </ToolTip.Tip>
+                                </CheckBox>
+
+                                <StackPanel Spacing="8"
+                                            Margin="24,0,0,0"
+                                            IsEnabled="{Binding BypassControlsEnabled}">
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" FontSize="11" Width="36"
+                                                       TextAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock.Text>
+                                                    <Binding Path="TransientThreshold" StringFormat="{}{0}" />
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock DockPanel.Dock="Left" Text="Flash Detection:" FontSize="12"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <Slider Minimum="10" Maximum="100" Value="{Binding TransientThreshold}"
+                                                    VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                            How aggressive a change triggers bypass (0-255 scale)
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" FontSize="11" Width="36"
+                                                       TextAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock.Text>
+                                                    <Binding Path="SettleThreshold" StringFormat="{}{0}" />
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock DockPanel.Dock="Left" Text="Settle Threshold:" FontSize="12"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <Slider Minimum="5" Maximum="30" Value="{Binding SettleThreshold}"
+                                                    VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                            How quiet content must be to exit bypass (0-255 scale)
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" FontSize="11" Width="36"
+                                                       TextAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock.Text>
+                                                    <Binding Path="SettleFrames" StringFormat="{}{0}" />
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock DockPanel.Dock="Left" Text="Settle Frames:" FontSize="12"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <Slider Minimum="1" Maximum="10" Value="{Binding SettleFrames}"
+                                                    VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                            Consecutive quiet frames needed to recover
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" FontSize="11" Width="36"
+                                                       TextAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock.Text>
+                                                    <Binding Path="BypassCoefficient" />
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock DockPanel.Dock="Left" Text="Bypass Speed (frames):"
+                                                       FontSize="12"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <Slider Minimum="2" Maximum="12" Value="{Binding BypassCoefficient}"
+                                                    VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                            Integration coefficient during bypass (higher = faster response)
+                                        </TextBlock>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 5: PREVIEW -->
+            <TabItem Header="Preview">
+                <StackPanel Margin="16" Spacing="12">
+
+
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="8">
+                        <!-- Top Zone -->
+                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                            <TextBlock Text="TOP" HorizontalAlignment="Center"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="Gray" />
+                            <Border Height="40" Width="{Binding PreviewMonitorWidth}" CornerRadius="4,4,0,0"
+                                    Background="{Binding TopPreviewColor, Converter={StaticResource RgbToBrush}}"
+                                    BorderThickness="1" BorderBrush="Gray" />
+                            <TextBlock Text="{Binding TopPreviewHex}"
+                                       HorizontalAlignment="Center"
+                                       FontSize="12" FontFamily="Consolas" />
+                        </StackPanel>
+
+                        <!-- Middle Section: Left - Screen - Right -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                            <!-- Left Zone -->
+                            <StackPanel Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="LEFT" HorizontalAlignment="Center"
+                                           FontSize="12" FontWeight="SemiBold" Foreground="Gray" />
+                                <Border Height="{Binding PreviewMonitorHeight}" Width="40" CornerRadius="4,0,0,4"
+                                        Background="{Binding LeftPreviewColor, Converter={StaticResource RgbToBrush}}"
+                                        BorderThickness="1" BorderBrush="Gray" />
+                                <TextBlock Text="{Binding LeftPreviewHex}"
+                                           HorizontalAlignment="Center"
+                                           FontSize="12" FontFamily="Consolas" />
+                            </StackPanel>
+
+                            <!-- Monitor Screen Representation -->
+                            <Border Height="{Binding PreviewMonitorHeight}" Width="{Binding PreviewMonitorWidth}"
+                                    Background="#1E1E1E" CornerRadius="2" BorderThickness="2" BorderBrush="#333333"
+                                    ClipToBounds="True">
+                                <Panel>
+                                    <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="{Binding ScreenWidth}" Height="{Binding ScreenHeight}">
+                                            <Grid x:Name="ContentBoundsGrid" Margin="{Binding ContentMargin}">
+                                                <!-- Background fill - fills the exact content area -->
+                                                <Border Background="#2A2A2A" />
+                                                <!-- Stroke on edges (drawn inside, 2px thin) -->
+                                                <Border Height="2" VerticalAlignment="Top" Background="#555555" />
+                                                <Border Height="2" VerticalAlignment="Bottom" Background="#555555" />
+                                                <Border Width="2" HorizontalAlignment="Left" Background="#555555" />
+                                                <Border Width="2" HorizontalAlignment="Right" Background="#555555" />
+                                            </Grid>
+                                        </Grid>
+                                    </Viewbox>
+                                    <!-- Label at native size, not affected by Viewbox scaling -->
+                                    <TextBlock Text="CONTENT BOUNDS" Foreground="#555555" FontWeight="Bold"
+                                               FontSize="14"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Panel>
+                            </Border>
+
+
+                            <!-- Right Zone -->
+                            <StackPanel Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="RIGHT" HorizontalAlignment="Center"
+                                           FontSize="12" FontWeight="SemiBold" Foreground="Gray" />
+                                <Border Height="{Binding PreviewMonitorHeight}" Width="40" CornerRadius="0,4,4,0"
+                                        Background="{Binding RightPreviewColor, Converter={StaticResource RgbToBrush}}"
+                                        BorderThickness="1" BorderBrush="Gray" />
+                                <TextBlock Text="{Binding RightPreviewHex}"
+                                           HorizontalAlignment="Center"
+                                           FontSize="12" FontFamily="Consolas" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Bottom Zone -->
+                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                            <TextBlock Text="BOTTOM" HorizontalAlignment="Center"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="Gray" />
+                            <Border Height="40" Width="{Binding PreviewMonitorWidth}" CornerRadius="0,0,4,4"
+                                    Background="{Binding BottomPreviewColor, Converter={StaticResource RgbToBrush}}"
+                                    BorderThickness="1" BorderBrush="Gray" />
+                            <TextBlock Text="{Binding BottomPreviewHex}"
+                                       HorizontalAlignment="Center"
+                                       FontSize="12" FontFamily="Consolas" />
+                        </StackPanel>
+
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+        </TabControl>
+    </DockPanel>
+</Window>
