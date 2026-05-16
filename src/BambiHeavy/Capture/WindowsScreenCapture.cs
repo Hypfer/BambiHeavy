@@ -141,6 +141,12 @@ public class WindowsScreenCapture : IScreenCapture
             Console.WriteLine($"[WARN] DXGI reinit failed: 0x{ex.ResultCode.Code:X8} — returning cached frame.");
             return false;
         }
+        catch (Exception ex)
+        {
+            // DXGI objects may be in a broken state (e.g. after sleep/wake).
+            Console.WriteLine($"[WARN] DXGI reinit failed: {ex.GetType().Name}: {ex.Message} — returning cached frame.");
+            return false;
+        }
     }
 
     private void DisposeDXGI()

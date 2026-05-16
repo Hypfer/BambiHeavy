@@ -223,6 +223,8 @@ public class BambiService
         var partSw = new Stopwatch();
         var totalSw = new Stopwatch();
         totalSw.Start();
+        var consecutiveErrors = 0;
+        const int maxConsecutiveErrors = 10;
 
         try
         {
@@ -423,6 +425,8 @@ public class BambiService
                         fpsTimerSw.Restart();
                     }
 
+                    consecutiveErrors = 0;
+
                     while (totalSw.ElapsedTicks < targetTicks)
                     {
                         if (token.IsCancellationRequested) break;
@@ -438,6 +442,7 @@ public class BambiService
                 }
                 catch (OutOfMemoryException)
                 {
+                    consecutiveErrors++;
                     foreach (var integrator in _integrators.Values)
                         integrator.Reset();
                     ContentBoundsDetector.Reset();
@@ -449,7 +454,13 @@ public class BambiService
                 }
                 catch (Exception ex)
                 {
+                    consecutiveErrors++;
                     Error?.Invoke(ex);
+                    if (consecutiveErrors >= maxConsecutiveErrors)
+                    {
+                        Console.WriteLine($"[ERROR] Pipeline loop breaking after {consecutiveErrors} consecutive errors.");
+                        break;
+                    }
                     Thread.Sleep(100);
                 }
             }
