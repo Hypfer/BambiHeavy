@@ -151,44 +151,31 @@ public class BoolToEyeIconConverter : IValueConverter
     }
 }
 
-public class StyleToBorderBrushConverter : IValueConverter
+public class ActiveStyleToBorderBrushConverter : IMultiValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        return value is bool b && b
-            ? new SolidColorBrush(Colors.SteelBlue)
-            : new SolidColorBrush(Color.Parse("#E0E0E0"));
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
+        if (values.Count == 2 && values[0] is BambiStyle current && values[1] is BambiStyle active)
+        {
+            return current == active 
+                ? new SolidColorBrush(Colors.SteelBlue)
+                : new SolidColorBrush(Color.Parse("#E0E0E0"));
+        }
+        return new SolidColorBrush(Color.Parse("#E0E0E0"));
     }
 }
 
-public class StyleToBackgroundConverter : IValueConverter
+public class ActiveStyleToBackgroundConverter : IMultiValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        return value is bool b && b ? new SolidColorBrush(Color.Parse("#E8F0FE")) : Brushes.Transparent;
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class IsActiveStyleConverter : IValueConverter
-{
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        return value is BambiStyle style && parameter is BambiStyle active && style == active;
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
+        if (values.Count == 2 && values[0] is BambiStyle current && values[1] is BambiStyle active)
+        {
+            return current == active 
+                ? new SolidColorBrush(Color.Parse("#E8F0FE")) 
+                : Brushes.Transparent;
+        }
+        return Brushes.Transparent;
     }
 }
 
